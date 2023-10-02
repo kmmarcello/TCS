@@ -1,0 +1,91 @@
+---
+title: "Untitled"
+author: "Kaylah Marcello"
+date: '2023-02-28'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE}
+#install.packages("viridisLite")
+#install.packages("svglite")
+#install.packages("factoextra")
+#install.packages("cluster")
+#install.packages("ggdendro")
+#install.packages("grid")
+#install.packages("ggfortify")
+#install.packages("plotly")
+#install.packages("graphics")
+#install.packages("ggplot2")
+```
+
+## Load the Libraries
+
+```{r message=FALSE}
+library(tidyverse)
+library(RColorBrewer)
+library(paletteer)
+library(janitor)
+library(here)
+library(skimr)
+#library(viridis)
+#library(shiny)
+#library(shinydashboard)
+library(devtools)
+library(svglite)
+#library(cluster)
+#library(factoextra)
+library(ggdendro)
+library(grid)
+library(gplots)
+library(ggplot2)
+library(graphics)
+library(plotly)
+library(ggfortify)
+```
+
+# Load desA amino acid substitution data
+```{r}
+df <- read.csv("TCS.csv")
+```
+
+# overview of the data
+```{r}
+glimpse(df)
+```
+
+# clean calomn names
+```{r}
+df_clean <- clean_names(df)
+df_clean
+```
+
+```{r}
+#df_aa <- df_clean %>%
+  #ggplot(aes(x=proline_count, y=r_k_ratio))+
+  #geom_col()
+#df_aa
+```
+
+```{r}
+df_aa <- df_clean %>%
+  ggplot(aes(x=aromaticity, y=proline_count))+
+  geom_point(na.rm=T)
+df_aa
+
+ggsave("TCS_proline_aromaticity.png")
+```
+
+```{r}
+df_aa <- df_clean %>%
+  ggplot(aes(x=aromaticity, y=r_k_ratio))+
+  geom_point(na.rm=T)
+df_aa
+
+ggsave("TCS_rkratio_aromaticity.png")
+```
+
+
