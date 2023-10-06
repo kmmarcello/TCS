@@ -215,32 +215,32 @@ ggsave("TCS_gravy.png")
 
 ## This one needs to be cleaned up
 ```{r}
-genome_size <- df_column %>% 
-  select(gravy, genome_size, temp_cat, genus, species) %>% 
-  filter(!is.na(gravy)) %>% 
-  ggplot(aes(x=species, y=gravy, color=temp_cat))+
-  facet_grid(genus~temp_cat) +
-  geom_point(size=0.2)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.25)),
-        panel.background = element_blank(),
-        axis.title = element_text(size = 9),
-        legend.title = element_text(size = 8),
-        legend.text = element_text(size = 6))+
-  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", "temperate" = "darkseagreen")) +
-  labs(title = "GRAVY of TCS Genes in Cyanobacteria",
-       x = "Genome Size",
-       y= "GRAVY",
-       color= "Temp Category")
-
-genome_size
-  
-ggsave("genome_gravy.png")
+#genome_size <- df_column %>% 
+#  select(gravy, genome_size, temp_cat, genus, species) %>% 
+#  filter(!is.na(gravy)) %>% 
+#  ggplot(aes(x=species, y=gravy, color=temp_cat))+
+#  facet_grid(genus~temp_cat) +
+#  geom_point(size=0.2)+
+#  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.25)),
+#        panel.background = element_blank(),
+#        axis.title = element_text(size = 9),
+#        legend.title = element_text(size = 8),
+#        legend.text = element_text(size = 6))+
+#  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", #"temperate" = "darkseagreen")) +
+#  labs(title = "GRAVY of TCS Genes in Cyanobacteria",
+#       x = "Genome Size",
+#       y= "GRAVY",
+#       color= "Temp Category")
+#
+#genome_size
+#  
+#ggsave("genome_gravy.png")
 ```
 
 ## separating the organism_tidy_name into genus, species and strains.
 ```{r}
 df_genus_species <- df_select %>% 
-  separate(organism_tidy_name, into = c("genus", "species", "strain", "strain1", "strain2"), sep = "_")
+  separate(organism_tidy_name, into = c("genus", "species", "strain", "strain1", "strain2"), sep = "\\_")
 df_genus_species
 ```
 
@@ -272,107 +272,5 @@ df_gravy1 <- df_genus_species %>%
 df_gravy1
 
 ggsave("TCS_gravy.png")
-```
-
-
-
-
-
-
-
-
-
-
-
-
-## 
-```{r}
-df_gc_size <- clean_df %>% 
-  select(join, organism_name_x, gc_percentage_x, genome_size_x, check_m_completeness_x, check_m_contamination_x, temp_cat, temp_estimate, organism_tidy_name) %>% 
-  filter(!is.na(gc_percentage_x)&!is.na(organism_tidy_name)) %>% 
-  filter(check_m_completeness_x >= 99 & check_m_contamination_x <= 1.5)
-df_gc_size
-```
-
-
-```{r}
-df_plot <- df_gc_size %>% 
-  ggplot(aes(x=genome_size_x, y=gc_percentage_x)) + geom_point(na.rm=T) +
-  geom_smooth(method=lm) +
-  stat_poly_line() +
-  stat_poly_eq() +
-  labs(title = "Genome Size vs GC percentage",
-       x = "Genome Size",
-       y = "GC Percentage")
-df_plot
-```
-# there is almost a negative correlation here? The smaller the genome the larger the variation in GC percentage
-
-```{r}
-genes <- read_csv("data/complete_CTG.csv")
-```
-```{r}
-clean_CTG <- clean_names(genes)
-```
-
-
-```{r}
-df_CTG <- left_join(df_gc_size, clean_CTG, keep = TRUE, by = 'join')
-df_CTG
-```
-
-```{r}
-names(df_CTG)
-```
-
-```{r}
-write_csv(df_CTG, "data/df_CTG.csv")
-```
-
-```{r}
-complete_ctg_df <- df_CTG %>%
-  rename(gyrA=cog0188_faa_final_tree_fa, nusA=cog0195_faa_final_tree_fa, infC=cog0290_faa_final_tree_fa, infA=cog0361_faa_final_tree_fa, otsA=cog0380_faa_final_tree_fa, dnaK=cog0443_faa_final_tree_fa, recA=cog0468_faa_final_tree_fa, dnaJ=cog0484_faa_final_tree_fa, aceF=cog0508_faa_final_tree_fa, deaD=cog0513_faa_final_tree_fa, infB=cog0532_faa_final_tree_fa, tig=cog0544_faa_final_tree_fa, rnr=cog0557_faa_final_tree_fa, dnaA=cog0593_faa_final_tree_fa, hupB=cog0776_faa_final_tree_fa, rbfA=cog0858_faa_final_tree_fa, yfiA=cog1115_faa_final_tree_fa, pnp=cog1185_faa_final_tree_fa, csp=cog1278_faa_final_tree_fa, aceE=cog2609_faa_final_tree_fa, desA=cog3239_faa_final_tree_fa)
-complete_ctg_df
-```
-
-```{r}
-write_csv(complete_ctg_df, "data/complete_ctg_df.csv")
-```
-
-```{r}
-names(complete_ctg_df)
-```
-
-
-```{r}
-df_temp_cat <- complete_ctg_df %>% 
-  filter(!is.na(organism_name_x == "Limnospira fusiformis SAG 85.79") & !is.na(temp_cat)) %>% 
-  filter(!is.na(gc_percentage_x)) %>% 
-  select(organism_tidy_name, organism_name_x, gc_percentage_x, genome_size_x, check_m_completeness_x, check_m_contamination_x, temp_cat, temp_estimate, nusA,infC,infA,otsA,dnaK,recA,dnaJ,aceF,deaD,infB,tig,rnr,dnaA,hupB,rbfA,yfiA,pnp,csp,aceE,desA) %>% 
-  filter(check_m_completeness_x >= 99 & check_m_contamination_x <= 1.5)
-df_temp_cat
-```
-# 
-```{r}
-df_tidy_names <- df_temp_cat %>% 
-  filter(!is.na(tig)&!is.na(organism_tidy_name))
-df_tidy_names
-```
-# column plot of all cyanos with a temperature category assigned to it. 
-```{r}
-temp_plot <- df_tidy_names %>%
-  ggplot(aes(x=organism_name_x, y=desA, fill=temp_cat))+
-  geom_col()+
-  labs(title = "DesA count",
-       x = "Cyanobacteria",
-       y = "# DesA genes")+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = rel(0.4)))
-temp_plot
-
-ggsave("DesA_count.png")
-```
-
-```{r}
-
 ```
 
