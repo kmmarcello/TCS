@@ -1,0 +1,378 @@
+---
+title: "Joining AA data to the complete_df data"
+author: "Kaylah Marcello"
+date: "2023-09-28"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+# intall packages
+
+## Load the Libraries
+
+```{r message=FALSE}
+library(tidyverse)
+library(RColorBrewer)
+library(paletteer)
+library(janitor)
+library(here)
+library(skimr)
+#library(viridis)
+#library(shiny)
+#library(shinydashboard)
+#Ylibrary(devtools)
+library(svglite)
+#library(cluster)
+#library(factoextra)
+library(ggdendro)
+library(grid)
+library(gplots)
+library(ggpmisc)
+```
+
+# NOTE: to highlight vertically 'Alt' + point and drag
+
+```{r}
+df <- read.csv("data/complete_0928.csv")
+aa_df <- read.csv("data/TCS_0928.csv")
+```
+
+```{r}
+head(df)
+```
+```{r}
+head(aa_df)
+```
+
+```{r}
+glimpse(df)
+```
+
+```{r}
+glimpse(aa_df)
+```
+
+```{r}
+clean_df <- clean_names(df)
+clean_df
+```
+
+```{r}
+clean_aa <- clean_names(aa_df)
+clean_aa
+```
+
+```{r}
+names(clean_df)
+names(clean_aa)
+```
+
+```{r}
+merged_df <- merge(clean_df, clean_aa, by = "seq", all = TRUE)
+merged_df
+```
+
+```{r}
+#df_CTG <- left_join(clean_df, clean_aa, keep = TRUE, by = 'ref_seq')
+#df_CTG
+```
+
+```{r}
+#names(df_CTG)
+```
+
+```{r}
+#write_csv(df_CTG, "data/df_CTG.csv")
+```
+
+```{r}
+write_csv(merged_df, "data/merged_df.csv")
+```
+
+## select columns of interest
+```{r}
+df_select <- merged_df %>% 
+  select(organism_name,organism_tidy_name,seq,class,check_m_completeness,check_m_contamination,genome_size, gc_percentage,temp_cat,proline_count,lysine_count,r_k_ratio,aliphatic_percent_sum,aromaticity,flexibility_avg,flexibility_sum,gravy)
+df_select
+```
+
+## proline count vs cyanobacteria boxplot
+```{r}
+df_proline <- df_select %>% 
+  select(organism_name, proline_count, temp_cat) %>% 
+  filter(!is.na(proline_count)) %>% 
+  ggplot(aes(x=organism_name, y=proline_count, color=temp_cat))+
+  geom_boxplot(alpha = .3, na.rm = TRUE, outlier.size = 0.2) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.4)),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6))+
+  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", "temperate" = "darkseagreen")) +
+  labs(title = "Proline Counts within TCS Genes of Cyanobacteria",
+       x = "Cyanobacteria",
+       y= "Proline Counts",
+       color= "Temp Category")
+  
+df_proline
+
+ggsave("TCS_proline.png")
+```
+
+## aromaticity vs cyanobacteria boxplot
+```{r}
+df_aromaticity <- df_select %>% 
+  select(organism_name, aromaticity, temp_cat) %>% 
+  filter(!is.na(aromaticity)) %>% 
+  ggplot(aes(x=organism_name, y=aromaticity, color=temp_cat))+
+  geom_boxplot(alpha = .3, na.rm = TRUE, outlier.size = 0.2) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.4)),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6))+
+  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", "temperate" = "darkseagreen")) +
+  labs(title = "Aromaticity of TCS Genes in Cyanobacteria",
+       x = "Cyanobacteria",
+       y= "Aromaticity",
+       color= "Temp Category")
+
+df_aromaticity
+
+ggsave("TCS_aromaticity.png")
+```
+
+## argenine/lysine vs cyanobacteria boxplot
+```{r}
+df_r_k_ratio <- df_select %>% 
+  select(organism_name, r_k_ratio, temp_cat) %>% 
+  filter(!is.na(r_k_ratio)) %>% 
+  ggplot(aes(x=organism_name, y=r_k_ratio, color=temp_cat))+
+  geom_boxplot(alpha = .3, na.rm = TRUE, outlier.size = 0.2) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.4)),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6))+
+  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", "temperate" = "darkseagreen")) +
+  labs(title = "Argenine to Lysine ratio of TCS Genes in Cyanobacteria",
+       x = "Cyanobacteria",
+       y= "Aromaticity",
+       color= "Temp Category")
+
+df_aromaticity
+
+ggsave("TCS_r_k_ratio.png")
+```
+
+## flexibility vs cyanobacteria boxplot
+```{r}
+df_flexibility <- df_select %>% 
+  select(organism_name, flexibility_avg, temp_cat) %>% 
+  filter(!is.na(flexibility_avg)) %>% 
+  ggplot(aes(x=organism_name, y=flexibility_avg, color=temp_cat))+
+  geom_boxplot(alpha = .3, na.rm = TRUE, outlier.size = 0.2) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.4)),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6))+
+  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", "temperate" = "darkseagreen")) +
+  labs(title = "Average Flexibility of Amino Acids Within TCS Genes of Cyanobacteria",
+       x = "Cyanobacteria",
+       y= "Proline Counts",
+       color= "Temp Category")
+  
+df_proline
+
+ggsave("TCS_flex_avg.png")
+```
+
+## gravy vs cyanobacteria boxplot with facet_wrap()
+```{r}
+df_gravy <- df_select %>% 
+  select(organism_name, gravy, temp_cat) %>% 
+  filter(!is.na(gravy)) %>% 
+  ggplot(aes(x=organism_name, y=gravy, color=temp_cat))+
+  facet_wrap(~temp_cat, ncol=4) +
+  geom_boxplot(alpha = .3, na.rm = TRUE, outlier.size = 0.2) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.25)),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6))+
+  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", "temperate" = "darkseagreen")) +
+  labs(title = "GRAVY of TCS Genes in Cyanobacteria",
+       x = "Cyanobacteria",
+       y= "GRAVY",
+       color= "Temp Category")
+  
+df_flexibility
+
+ggsave("TCS_gravy.png")
+```
+
+## This one needs to be cleaned up
+```{r}
+genome_size <- df_column %>% 
+  select(gravy, genome_size, temp_cat, genus, species) %>% 
+  filter(!is.na(gravy)) %>% 
+  ggplot(aes(x=species, y=gravy, color=temp_cat))+
+  facet_grid(genus~temp_cat) +
+  geom_point(size=0.2)+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.25)),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6))+
+  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", "temperate" = "darkseagreen")) +
+  labs(title = "GRAVY of TCS Genes in Cyanobacteria",
+       x = "Genome Size",
+       y= "GRAVY",
+       color= "Temp Category")
+
+genome_size
+  
+ggsave("genome_gravy.png")
+```
+
+## separating the organism_tidy_name into genus, species and strains.
+```{r}
+df_genus_species <- df_select %>% 
+  separate(organism_tidy_name, into = c("genus", "species", "strain", "strain1", "strain2"), sep = "_")
+df_genus_species
+```
+
+```{r}
+df_TCSclass <- df_select %>% 
+  separate(class, into = c("id", "type", "class"), sep = "\\|")
+df_TCSclass
+```
+
+
+```{r}
+df_gravy1 <- df_genus_species %>% 
+  select(genus, gravy, species, temp_cat) %>% 
+  filter(!is.na(gravy)) %>% 
+  ggplot(aes(x=genus, y=gravy, color=temp_cat))+
+  facet_grid(~temp_cat) +
+  geom_boxplot(alpha = .3, na.rm = TRUE, outlier.size = 0.2) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = rel(0.25)),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6))+
+  scale_color_manual(values = c("warm-hot" = "lightsalmon", "cold-freezing" = "skyblue2", "temperate" = "darkseagreen")) +
+  labs(title = "GRAVY of TCS Genes in Cyanobacteria",
+       x = "Cyanobacteria Genera",
+       y= "GRAVY",
+       color= "Temp Category")
+  
+df_gravy1
+
+ggsave("TCS_gravy.png")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+## 
+```{r}
+df_gc_size <- clean_df %>% 
+  select(join, organism_name_x, gc_percentage_x, genome_size_x, check_m_completeness_x, check_m_contamination_x, temp_cat, temp_estimate, organism_tidy_name) %>% 
+  filter(!is.na(gc_percentage_x)&!is.na(organism_tidy_name)) %>% 
+  filter(check_m_completeness_x >= 99 & check_m_contamination_x <= 1.5)
+df_gc_size
+```
+
+
+```{r}
+df_plot <- df_gc_size %>% 
+  ggplot(aes(x=genome_size_x, y=gc_percentage_x)) + geom_point(na.rm=T) +
+  geom_smooth(method=lm) +
+  stat_poly_line() +
+  stat_poly_eq() +
+  labs(title = "Genome Size vs GC percentage",
+       x = "Genome Size",
+       y = "GC Percentage")
+df_plot
+```
+# there is almost a negative correlation here? The smaller the genome the larger the variation in GC percentage
+
+```{r}
+genes <- read_csv("data/complete_CTG.csv")
+```
+```{r}
+clean_CTG <- clean_names(genes)
+```
+
+
+```{r}
+df_CTG <- left_join(df_gc_size, clean_CTG, keep = TRUE, by = 'join')
+df_CTG
+```
+
+```{r}
+names(df_CTG)
+```
+
+```{r}
+write_csv(df_CTG, "data/df_CTG.csv")
+```
+
+```{r}
+complete_ctg_df <- df_CTG %>%
+  rename(gyrA=cog0188_faa_final_tree_fa, nusA=cog0195_faa_final_tree_fa, infC=cog0290_faa_final_tree_fa, infA=cog0361_faa_final_tree_fa, otsA=cog0380_faa_final_tree_fa, dnaK=cog0443_faa_final_tree_fa, recA=cog0468_faa_final_tree_fa, dnaJ=cog0484_faa_final_tree_fa, aceF=cog0508_faa_final_tree_fa, deaD=cog0513_faa_final_tree_fa, infB=cog0532_faa_final_tree_fa, tig=cog0544_faa_final_tree_fa, rnr=cog0557_faa_final_tree_fa, dnaA=cog0593_faa_final_tree_fa, hupB=cog0776_faa_final_tree_fa, rbfA=cog0858_faa_final_tree_fa, yfiA=cog1115_faa_final_tree_fa, pnp=cog1185_faa_final_tree_fa, csp=cog1278_faa_final_tree_fa, aceE=cog2609_faa_final_tree_fa, desA=cog3239_faa_final_tree_fa)
+complete_ctg_df
+```
+
+```{r}
+write_csv(complete_ctg_df, "data/complete_ctg_df.csv")
+```
+
+```{r}
+names(complete_ctg_df)
+```
+
+
+```{r}
+df_temp_cat <- complete_ctg_df %>% 
+  filter(!is.na(organism_name_x == "Limnospira fusiformis SAG 85.79") & !is.na(temp_cat)) %>% 
+  filter(!is.na(gc_percentage_x)) %>% 
+  select(organism_tidy_name, organism_name_x, gc_percentage_x, genome_size_x, check_m_completeness_x, check_m_contamination_x, temp_cat, temp_estimate, nusA,infC,infA,otsA,dnaK,recA,dnaJ,aceF,deaD,infB,tig,rnr,dnaA,hupB,rbfA,yfiA,pnp,csp,aceE,desA) %>% 
+  filter(check_m_completeness_x >= 99 & check_m_contamination_x <= 1.5)
+df_temp_cat
+```
+# 
+```{r}
+df_tidy_names <- df_temp_cat %>% 
+  filter(!is.na(tig)&!is.na(organism_tidy_name))
+df_tidy_names
+```
+# column plot of all cyanos with a temperature category assigned to it. 
+```{r}
+temp_plot <- df_tidy_names %>%
+  ggplot(aes(x=organism_name_x, y=desA, fill=temp_cat))+
+  geom_col()+
+  labs(title = "DesA count",
+       x = "Cyanobacteria",
+       y = "# DesA genes")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = rel(0.4)))
+temp_plot
+
+ggsave("DesA_count.png")
+```
+
+```{r}
+
+```
+
